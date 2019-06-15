@@ -21,28 +21,34 @@ class LakeWater : WaterSupply(true) {
     }
 }
 
-class Aquarium<T: WaterSupply> (val waterSupply: T) {
+class Aquarium<out T: WaterSupply> (val waterSupply: T) {
 
-    fun addWater() {
-        check(!waterSupply.needsProcessed) { "water supply needs processed" }
+    fun addWater(cleaner: Cleaner<T>) {
+//        check(!waterSupply.needsProcessed) { "water supply needs processed" }
+        if (waterSupply.needsProcessed) {
+            cleaner.clean(waterSupply)
+        }
 
         println("adding water from $waterSupply")
     }
 }
 
+interface Cleaner<in T:WaterSupply> {
+    fun clean(waterSupply: T)
+}
+
+class TapWaterCleaner: Cleaner<TapWater> {
+    override fun clean(waterSupply: TapWater) {
+        waterSupply.addChemicalCleaners()
+    }
+}
+
+fun addItemTo(aquarium: Aquarium<WaterSupply>) = println("item added")
+
 fun genericExample() {
-
+    val cleaner = TapWaterCleaner()
     val aquarium = Aquarium(TapWater())
-    aquarium.waterSupply.addChemicalCleaners()
+    aquarium.addWater(cleaner)
 
-//    val aquarium2 = Aquarium("string")
-//    println(aquarium.waterSupply)
-//
-//    val aquarium3 = Aquarium(null)
-//    aquarium.waterSupply
-
-    val aquarium4 = Aquarium(LakeWater())
-    aquarium4.waterSupply.filter()
-    aquarium4.addWater()
-
+    addItemTo(aquarium)
 }
